@@ -127,35 +127,25 @@ const Landing = ({ onEnter }) => {
     }}>
       <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
-      {/* Video background — Pexels CDN direct link */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        onCanPlay={() => setVideoReady(true)}
+      {/* Image background — Pexels farmers market photo */}
+      <img
+        src="https://images.pexels.com/photos/8540180/pexels-photo-8540180.jpeg?auto=compress&cs=tinysrgb&w=1600"
+        alt=""
         style={{
-          position: "absolute", top: "50%", left: "50%",
-          minWidth: "100%", minHeight: "100%",
-          width: "auto", height: "auto",
-          transform: "translate(-50%, -50%)",
-          zIndex: 0,
-          opacity: videoReady ? 1 : 0,
-          transition: "opacity 1.5s ease",
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
           objectFit: "cover",
+          zIndex: 0,
         }}
-      >
-        <source src="https://videos.pexels.com/video-files/4917406/4917406-uhd_2560_1440_30fps.mp4" type="video/mp4"/>
-        <source src="https://videos.pexels.com/video-files/2231485/2231485-uhd_2560_1440_30fps.mp4" type="video/mp4"/>
-      </video>
+      />
 
-      {/* Fallback gradient (shows while video loads) */}
+      {/* Subtle warm tint fallback */}
       <div style={{
         position: "absolute", inset: 0,
         background: "linear-gradient(135deg, #2d3a1e 0%, #4a5a35 40%, #6b7c4a 100%)",
-        opacity: videoReady ? 0 : 1,
-        transition: "opacity 1.5s ease",
-        zIndex: 1,
+        zIndex: -1,
       }}/>
 
       {/* Dark overlay for text legibility */}
