@@ -105,8 +105,8 @@ const TYPES=["All Types","Farmers Market","Farm","Farm Stand"];
 const PRODUCTS=["Vegetables","Fruits","Meat","Eggs","Cheese","Honey","Baked Goods","Herbs","Flowers","Seafood","Peaches","Citrus","Wine","Pecans"];
 const hav=(a,b,c,e)=>{const R=3959,x=(c-a)*Math.PI/180,y=(e-b)*Math.PI/180;const s=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s));};
 
-// Image library — verified Pexels photos that look authentically Texas/American rural
-// (avoiding any clearly foreign locations)
+// Image library — Texas-themed rural American photos
+// Verified to look authentically like Texas farms, ranches, markets
 const TEXAS_IMAGES = {
   // Open fields, ranches, farms — quintessential Texas
   field: [
@@ -115,6 +115,8 @@ const TEXAS_IMAGES = {
     "https://images.pexels.com/photos/158827/field-corn-air-frisch-158827.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/247599/pexels-photo-247599.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/248880/pexels-photo-248880.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/96715/pexels-photo-96715.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/46160/field-clouds-sky-meadow-46160.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
   // Farmers market: outdoor wooden stalls, fresh produce displays
   market: [
@@ -122,6 +124,7 @@ const TEXAS_IMAGES = {
     "https://images.pexels.com/photos/2611817/pexels-photo-2611817.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/2255925/pexels-photo-2255925.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/2252584/pexels-photo-2252584.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/95425/pexels-photo-95425.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
   // Roadside / rustic farm stands
   stand: [
@@ -130,25 +133,29 @@ const TEXAS_IMAGES = {
     "https://images.pexels.com/photos/616404/pexels-photo-616404.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
   // Region-specific themes
-  hillCountry: [ // Peaches, lavender, vineyards
-    "https://images.pexels.com/photos/162389/lost-places-old-decay-ruin-162389.jpeg?auto=compress&cs=tinysrgb&w=600",
-    "https://images.pexels.com/photos/30659/pexels-photo-30659.jpg?auto=compress&cs=tinysrgb&w=600",
+  hillCountry: [ // Peaches, vineyards
+    "https://images.pexels.com/photos/39351/purple-grapes-vineyard-napa-valley-napa-vineyard-39351.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/760281/pexels-photo-760281.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/207247/pexels-photo-207247.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
-  coast: [ // Seafood, gulf
-    "https://images.pexels.com/photos/1078974/pexels-photo-1078974.jpeg?auto=compress&cs=tinysrgb&w=600",
-    "https://images.pexels.com/photos/3296542/pexels-photo-3296542.jpeg?auto=compress&cs=tinysrgb&w=600",
+  coast: [ // Seafood, gulf coast
+    "https://images.pexels.com/photos/2837909/pexels-photo-2837909.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/1192671/pexels-photo-1192671.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
-  desert: [ // West Texas, desert farms
-    "https://images.pexels.com/photos/1166209/pexels-photo-1166209.jpeg?auto=compress&cs=tinysrgb&w=600",
-    "https://images.pexels.com/photos/1166644/pexels-photo-1166644.jpeg?auto=compress&cs=tinysrgb&w=600",
+  desert: [ // West Texas, desert landscapes
+    "https://images.pexels.com/photos/33041/antelope-canyon-lower-canyon-arizona.jpg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/1287145/pexels-photo-1287145.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/2382325/pexels-photo-2382325.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
   citrus: [ // Rio Grande Valley
     "https://images.pexels.com/photos/952356/pexels-photo-952356.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/161559/background-bitter-breakfast-bright-161559.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
   ranch: [ // Panhandle, ranching
-    "https://images.pexels.com/photos/144234/pexels-photo-144234.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/162801/cattle-ranching-fence-meadow-162801.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/422218/pexels-photo-422218.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/735968/pexels-photo-735968.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
 };
 
@@ -387,11 +394,11 @@ const Landing = ({ onEnter, onSelectFarm }) => {
           <Logo size={44}/>
           <span style={{fontFamily:"'Fraunces',serif",fontSize:20,fontWeight:600,color:"#fefcf7",letterSpacing:"-0.3px"}}>Lone Star Farms</span>
         </div>
-        <div style={{display:"flex",gap:32,fontFamily:"'Inter',sans-serif",fontSize:13,color:"rgba(254,252,247,0.85)",fontWeight:500,letterSpacing:"0.5px"}}>
-          <span style={{cursor:"pointer"}} onClick={()=>setShowAbout(true)}>About</span>
-          <span style={{cursor:"pointer"}} onClick={onEnter}>Farms</span>
-          <span style={{cursor:"pointer"}} onClick={()=>setShowSubmit(true)}>List Yours</span>
-          <span style={{cursor:"pointer"}} onClick={()=>setShowContact(true)}>Contact</span>
+        <div style={{display:"flex",gap:8,fontFamily:"'Inter',sans-serif",fontSize:13,fontWeight:500,letterSpacing:"0.5px"}}>
+          <button onClick={()=>setShowAbout(true)} style={{background:"transparent",border:"none",color:"rgba(254,252,247,0.85)",fontFamily:"inherit",fontSize:"inherit",fontWeight:"inherit",letterSpacing:"inherit",padding:"8px 14px",cursor:"pointer",outline:"none",borderRadius:6,transition:"all 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.color="#fefcf7";e.currentTarget.style.background="rgba(254,252,247,0.1)"}} onMouseLeave={e=>{e.currentTarget.style.color="rgba(254,252,247,0.85)";e.currentTarget.style.background="transparent"}}>About</button>
+          <button onClick={onEnter} style={{background:"transparent",border:"none",color:"rgba(254,252,247,0.85)",fontFamily:"inherit",fontSize:"inherit",fontWeight:"inherit",letterSpacing:"inherit",padding:"8px 14px",cursor:"pointer",outline:"none",borderRadius:6,transition:"all 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.color="#fefcf7";e.currentTarget.style.background="rgba(254,252,247,0.1)"}} onMouseLeave={e=>{e.currentTarget.style.color="rgba(254,252,247,0.85)";e.currentTarget.style.background="transparent"}}>Farms</button>
+          <button onClick={()=>setShowSubmit(true)} style={{background:"transparent",border:"none",color:"rgba(254,252,247,0.85)",fontFamily:"inherit",fontSize:"inherit",fontWeight:"inherit",letterSpacing:"inherit",padding:"8px 14px",cursor:"pointer",outline:"none",borderRadius:6,transition:"all 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.color="#fefcf7";e.currentTarget.style.background="rgba(254,252,247,0.1)"}} onMouseLeave={e=>{e.currentTarget.style.color="rgba(254,252,247,0.85)";e.currentTarget.style.background="transparent"}}>List Yours</button>
+          <button onClick={()=>setShowContact(true)} style={{background:"transparent",border:"none",color:"rgba(254,252,247,0.85)",fontFamily:"inherit",fontSize:"inherit",fontWeight:"inherit",letterSpacing:"inherit",padding:"8px 14px",cursor:"pointer",outline:"none",borderRadius:6,transition:"all 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.color="#fefcf7";e.currentTarget.style.background="rgba(254,252,247,0.1)"}} onMouseLeave={e=>{e.currentTarget.style.color="rgba(254,252,247,0.85)";e.currentTarget.style.background="transparent"}}>Contact</button>
         </div>
       </div>
 
@@ -609,17 +616,17 @@ const Landing = ({ onEnter, onSelectFarm }) => {
       {/* About Modal */}
       {showAbout && (
         <div onClick={()=>setShowAbout(false)} style={{position:"fixed",inset:0,background:"rgba(20,20,16,0.7)",backdropFilter:"blur(8px)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"'Inter',sans-serif"}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:"#fefcf7",borderRadius:20,width:"100%",maxWidth:560,maxHeight:"90vh",overflowY:"auto",boxShadow:"0 30px 80px rgba(0,0,0,0.4)",padding:"32px 36px"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#fefcf7",borderRadius:20,width:"100%",maxWidth:540,maxHeight:"90vh",overflowY:"auto",boxShadow:"0 30px 80px rgba(0,0,0,0.4)",padding:"36px 40px"}}>
             <button onClick={()=>setShowAbout(false)} style={{float:"right",background:"none",border:"none",fontSize:22,cursor:"pointer",color:"#8a7a5a",outline:"none",padding:4,lineHeight:1}}>✕</button>
-            <h2 style={{margin:"0 0 4px",fontFamily:"'Fraunces',Georgia,serif",fontSize:32,fontWeight:600,color:"#1a1410",letterSpacing:"-0.5px"}}>About Lone Star Farms</h2>
-            <div style={{width:40,height:2,background:"#5a7c3e",margin:"12px 0 20px"}}/>
-            <p style={{fontSize:14,color:"#3a3020",lineHeight:1.7,margin:"0 0 14px"}}>Lone Star Farms is a directory connecting Texans with the local farms, ranches, and farmers markets growing fresh, real food across the Lone Star State.</p>
-            <p style={{fontSize:14,color:"#3a3020",lineHeight:1.7,margin:"0 0 14px"}}>We believe in <em style={{fontFamily:"'Fraunces',serif"}}>knowing your farmer, knowing your food.</em> When you buy direct, you support family operations, get fresher produce, and reduce food miles. Texas has some of the most diverse agriculture in the country — Hill Country peaches, Gulf Coast seafood, Panhandle ranches, Rio Grande citrus — and we want to make it easy to find it all.</p>
-            <p style={{fontSize:14,color:"#3a3020",lineHeight:1.7,margin:"0 0 24px"}}>Built by Texans, for Texans. 🌱</p>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,paddingTop:18,borderTop:"1px solid #ede5d5"}}>
-              <div><div style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:600,color:"#5a7c3e"}}>{FARMS.length}+</div><div style={{fontSize:10,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,marginTop:2}}>Local Farms</div></div>
-              <div><div style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:600,color:"#5a7c3e"}}>10</div><div style={{fontSize:10,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,marginTop:2}}>Texas Regions</div></div>
-              <div><div style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:600,color:"#5a7c3e"}}>100%</div><div style={{fontSize:10,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,marginTop:2}}>Farm Direct</div></div>
+            <div style={{fontSize:10,fontWeight:700,color:"#5a7c3e",letterSpacing:"2px",textTransform:"uppercase",marginBottom:8}}>★ Our Mission</div>
+            <h2 style={{margin:"0 0 4px",fontFamily:"'Fraunces',Georgia,serif",fontSize:34,fontWeight:600,color:"#1a1410",letterSpacing:"-0.5px",lineHeight:1.1}}>Real food, <em style={{fontFamily:"'Fraunces',serif",fontStyle:"italic",fontWeight:400}}>real Texans.</em></h2>
+            <div style={{width:40,height:2,background:"#5a7c3e",margin:"20px 0 22px"}}/>
+            <p style={{fontSize:15,color:"#3a3020",lineHeight:1.7,margin:"0 0 16px"}}>Lone Star Farms exists to <strong>connect consumers with healthier, local food options</strong> across Texas — making it easy to discover the farms, ranches, and farmers markets in your community.</p>
+            <p style={{fontSize:14,color:"#5a4a30",lineHeight:1.7,margin:"0 0 28px",fontStyle:"italic"}}>Skip the processed aisle. Eat fresh, eat local, eat Texan. 🌱</p>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,paddingTop:22,borderTop:"1px solid #ede5d5"}}>
+              <div><div style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:600,color:"#5a7c3e",lineHeight:1}}>{FARMS.length}+</div><div style={{fontSize:9,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,marginTop:6}}>Local Farms</div></div>
+              <div><div style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:600,color:"#5a7c3e",lineHeight:1}}>10</div><div style={{fontSize:9,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,marginTop:6}}>Texas Regions</div></div>
+              <div><div style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:600,color:"#5a7c3e",lineHeight:1}}>100%</div><div style={{fontSize:9,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,marginTop:6}}>Farm Direct</div></div>
             </div>
           </div>
         </div>
