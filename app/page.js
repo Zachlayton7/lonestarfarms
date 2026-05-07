@@ -105,28 +105,33 @@ const TYPES=["All Types","Farmers Market","Farm","Farm Stand"];
 const PRODUCTS=["Vegetables","Fruits","Meat","Eggs","Cheese","Honey","Baked Goods","Herbs","Flowers","Seafood","Peaches","Citrus","Wine","Pecans"];
 const hav=(a,b,c,e)=>{const R=3959,x=(c-a)*Math.PI/180,y=(e-b)*Math.PI/180;const s=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s));};
 
-// Image library for farm types - using free Pexels stock photos
+// Image library for farm types - using verified free Pexels stock photos
 const FARM_IMAGES = {
   "Farmers Market": [
-    "https://images.pexels.com/photos/1300972/pexels-photo-1300972.jpeg?auto=compress&w=600",
-    "https://images.pexels.com/photos/2255935/pexels-photo-2255935.jpeg?auto=compress&w=600",
-    "https://images.pexels.com/photos/375896/pexels-photo-375896.jpeg?auto=compress&w=600",
-    "https://images.pexels.com/photos/1656663/pexels-photo-1656663.jpeg?auto=compress&w=600",
-    "https://images.pexels.com/photos/1437859/pexels-photo-1437859.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/375896/pexels-photo-375896.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/1300972/pexels-photo-1300972.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/2255935/pexels-photo-2255935.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/2611817/pexels-photo-2611817.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/2255925/pexels-photo-2255925.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/2252584/pexels-photo-2252584.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
   "Farm": [
-    "https://images.pexels.com/photos/235725/pexels-photo-235725.jpeg?auto=compress&w=600",
-    "https://images.pexels.com/photos/265216/pexels-photo-265216.jpeg?auto=compress&w=600",
-    "https://images.pexels.com/photos/1112080/pexels-photo-1112080.jpeg?auto=compress&w=600",
-    "https://images.pexels.com/photos/2418664/pexels-photo-2418664.jpeg?auto=compress&w=600",
-    "https://images.pexels.com/photos/957024/forest-trees-perspective-bright-957024.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/235725/pexels-photo-235725.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/265216/pexels-photo-265216.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/158827/field-corn-air-frisch-158827.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/957024/forest-trees-perspective-bright-957024.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/247599/pexels-photo-247599.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/248880/pexels-photo-248880.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
   "Farm Stand": [
-    "https://images.pexels.com/photos/2255801/pexels-photo-2255801.jpeg?auto=compress&w=600",
-    "https://images.pexels.com/photos/1656666/pexels-photo-1656666.jpeg?auto=compress&w=600",
-    "https://images.pexels.com/photos/616404/pexels-photo-616404.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/2255801/pexels-photo-2255801.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/375899/pexels-photo-375899.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/616404/pexels-photo-616404.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
 };
+// Universal fallback if any image fails to load
+const FALLBACK_IMAGE = "https://images.pexels.com/photos/235725/pexels-photo-235725.jpeg?auto=compress&cs=tinysrgb&w=600";
+
 const getFarmImage = (farm) => {
   const list = FARM_IMAGES[farm.type] || FARM_IMAGES["Farm"];
   return list[farm.id % list.length];
@@ -703,7 +708,7 @@ function Dashboard({ onBack }) {
                   background:`linear-gradient(135deg,${tc.bg},${tc.c}33)`,
                   overflow:"hidden",
                 }}>
-                  <img src={getFarmImage(f)} alt={f.name} loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+                  <img src={getFarmImage(f)} alt={f.name} loading="lazy" onError={(e)=>{e.currentTarget.src=FALLBACK_IMAGE;e.currentTarget.onerror=null;}} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
                   {/* Gradient overlay */}
                   <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.35))",pointerEvents:"none"}}/>
                   {/* Type badge */}
