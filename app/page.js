@@ -1,4 +1,4 @@
-"user client";
+"use client";
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import * as d3 from "d3";
 
