@@ -374,6 +374,7 @@ const Landing = ({ onEnter, onSelectFarm }) => {
         position: "absolute", inset: 0,
         background: "linear-gradient(180deg, rgba(20,15,10,0.4) 0%, rgba(20,15,10,0.5) 50%, rgba(20,15,10,0.75) 100%)",
         zIndex: 2,
+        pointerEvents: "none",
       }}/>
 
       {/* Subtle grain texture */}
