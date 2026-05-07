@@ -105,15 +105,161 @@ const TYPES=["All Types","Farmers Market","Farm","Farm Stand"];
 const PRODUCTS=["Vegetables","Fruits","Meat","Eggs","Cheese","Honey","Baked Goods","Herbs","Flowers","Seafood","Peaches","Citrus","Wine","Pecans"];
 const hav=(a,b,c,e)=>{const R=3959,x=(c-a)*Math.PI/180,y=(e-b)*Math.PI/180;const s=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s));};
 
+// Image library for farm types - using free Pexels stock photos
+const FARM_IMAGES = {
+  "Farmers Market": [
+    "https://images.pexels.com/photos/1300972/pexels-photo-1300972.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/2255935/pexels-photo-2255935.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/375896/pexels-photo-375896.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/1656663/pexels-photo-1656663.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/1437859/pexels-photo-1437859.jpeg?auto=compress&w=600",
+  ],
+  "Farm": [
+    "https://images.pexels.com/photos/235725/pexels-photo-235725.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/265216/pexels-photo-265216.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/1112080/pexels-photo-1112080.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/2418664/pexels-photo-2418664.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/957024/forest-trees-perspective-bright-957024.jpeg?auto=compress&w=600",
+  ],
+  "Farm Stand": [
+    "https://images.pexels.com/photos/2255801/pexels-photo-2255801.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/1656666/pexels-photo-1656666.jpeg?auto=compress&w=600",
+    "https://images.pexels.com/photos/616404/pexels-photo-616404.jpeg?auto=compress&w=600",
+  ],
+};
+const getFarmImage = (farm) => {
+  const list = FARM_IMAGES[farm.type] || FARM_IMAGES["Farm"];
+  return list[farm.id % list.length];
+};
+// Get a working URL for any farm (their website if listed, else Google search)
+const getFarmUrl = (farm) => {
+  if (farm.website) {
+    return farm.website.startsWith("http") ? farm.website : `https://${farm.website}`;
+  }
+  return `https://www.google.com/search?q=${encodeURIComponent(farm.name + " " + farm.city + " Texas")}`;
+};
+
 const Stars=({r,s})=>(<div style={{display:"flex",alignItems:"center",gap:1}}>{[0,1,2,3,4].map(i=><span key={i} style={{fontSize:s?11:13,opacity:i<Math.floor(r)?1:i<r?.6:.25}}>⭐</span>)}<span style={{fontSize:s?10:11,color:"#8a7a5a",marginLeft:3,fontWeight:700}}>{r}</span></div>);
 const Chip=({name})=>(<span style={{display:"inline-flex",alignItems:"center",gap:4,padding:"4px 10px",borderRadius:20,background:"#fefcf7",border:"1.5px solid #e8dcc8",fontSize:11,fontWeight:600,color:"#5a4a30",whiteSpace:"nowrap"}}><span style={{fontSize:14}}>{ic(name)}</span>{name}</span>);
 
 // ════════════════════════════════════
-// LANDING PAGE — cinematic video hero
+// SUBMIT FARM MODAL
+// ════════════════════════════════════
+const SubmitFarmModal = ({ onClose }) => {
+  const [form, setForm] = useState({
+    name: "", type: "Farm", city: "", region: "Gulf Coast",
+    address: "", phone: "", website: "",
+    schedule: "", products: "", description: ""
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const set = (k, v) => setForm(p => ({...p, [k]: v}));
+  const inputStyle = {width:"100%",padding:"10px 12px",border:"1.5px solid #d4c4a8",borderRadius:10,fontSize:13,fontFamily:"'Inter',sans-serif",background:"#fefcf7",outline:"none",boxSizing:"border-box",color:"#1a1410"};
+  const labelStyle = {fontSize:10,fontWeight:700,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",marginBottom:4,display:"block"};
+
+  const submit = () => {
+    if (!form.name || !form.city) return;
+    // Save to localStorage so user can review their submissions later
+    try {
+      const existing = JSON.parse(localStorage.getItem("lsf-submissions") || "[]");
+      existing.push({...form, submittedAt: new Date().toISOString()});
+      localStorage.setItem("lsf-submissions", JSON.stringify(existing));
+    } catch(e) {}
+    // Open mailto for actual delivery
+    const subject = encodeURIComponent(`New Farm Submission: ${form.name}`);
+    const body = encodeURIComponent(
+      `New farm listing submission:\n\n` +
+      `Name: ${form.name}\nType: ${form.type}\nCity: ${form.city}\nRegion: ${form.region}\n` +
+      `Address: ${form.address}\nPhone: ${form.phone}\nWebsite: ${form.website}\n` +
+      `Schedule: ${form.schedule}\nProducts: ${form.products}\n\nDescription: ${form.description}`
+    );
+    window.location.href = `mailto:hello@lonestarfarms.org?subject=${subject}&body=${body}`;
+    setSubmitted(true);
+  };
+
+  return (
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(20,20,16,0.7)",backdropFilter:"blur(8px)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"'Inter',sans-serif"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#fefcf7",borderRadius:20,width:"100%",maxWidth:520,maxHeight:"90vh",overflowY:"auto",boxShadow:"0 30px 80px rgba(0,0,0,0.4)"}}>
+        <div style={{padding:"24px 28px 20px",borderBottom:"1px solid #ede5d5",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+          <div>
+            <h2 style={{margin:0,fontFamily:"'Fraunces',Georgia,serif",fontSize:24,fontWeight:600,color:"#1a1410",letterSpacing:"-0.3px"}}>List Your Farm</h2>
+            <p style={{margin:"4px 0 0",fontSize:13,color:"#8a7a5a"}}>Help Texans discover your fresh produce 🌱</p>
+          </div>
+          <button onClick={onClose} style={{background:"none",border:"none",fontSize:22,cursor:"pointer",color:"#8a7a5a",outline:"none",padding:4,lineHeight:1}}>✕</button>
+        </div>
+
+        {submitted ? (
+          <div style={{padding:40,textAlign:"center"}}>
+            <div style={{fontSize:48,marginBottom:12}}>🎉</div>
+            <h3 style={{fontFamily:"'Fraunces',serif",fontSize:22,color:"#5a7c3e",margin:"0 0 8px",fontWeight:600}}>Submission sent!</h3>
+            <p style={{fontSize:13,color:"#5a4a30",lineHeight:1.6,margin:"0 0 16px"}}>Your email app should have opened with your submission. Send the email to complete your listing — we'll review and add your farm soon!</p>
+            <button onClick={onClose} style={{marginTop:8,background:"#1a1410",color:"#fefcf7",border:"none",borderRadius:100,padding:"10px 28px",fontSize:13,fontWeight:600,cursor:"pointer",outline:"none"}}>Done</button>
+          </div>
+        ) : (
+          <div style={{padding:"20px 28px 24px",display:"flex",flexDirection:"column",gap:14}}>
+            <div>
+              <label style={labelStyle}>Farm Name *</label>
+              <input value={form.name} onChange={e=>set("name",e.target.value)} placeholder="e.g. Sunny Acres Farm" style={inputStyle}/>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              <div>
+                <label style={labelStyle}>Type</label>
+                <select value={form.type} onChange={e=>set("type",e.target.value)} style={{...inputStyle,cursor:"pointer"}}>
+                  <option>Farm</option><option>Farmers Market</option><option>Farm Stand</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Region</label>
+                <select value={form.region} onChange={e=>set("region",e.target.value)} style={{...inputStyle,cursor:"pointer"}}>
+                  {REGIONS.slice(1).map(r=><option key={r}>{r}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              <div>
+                <label style={labelStyle}>City *</label>
+                <input value={form.city} onChange={e=>set("city",e.target.value)} placeholder="Houston" style={inputStyle}/>
+              </div>
+              <div>
+                <label style={labelStyle}>Phone</label>
+                <input value={form.phone} onChange={e=>set("phone",e.target.value)} placeholder="(555) 123-4567" style={inputStyle}/>
+              </div>
+            </div>
+            <div>
+              <label style={labelStyle}>Address</label>
+              <input value={form.address} onChange={e=>set("address",e.target.value)} placeholder="123 Farm Rd, Houston, TX" style={inputStyle}/>
+            </div>
+            <div>
+              <label style={labelStyle}>Website</label>
+              <input value={form.website} onChange={e=>set("website",e.target.value)} placeholder="yourfarm.com" style={inputStyle}/>
+            </div>
+            <div>
+              <label style={labelStyle}>Hours / Schedule</label>
+              <input value={form.schedule} onChange={e=>set("schedule",e.target.value)} placeholder="Saturdays 8AM–12PM" style={inputStyle}/>
+            </div>
+            <div>
+              <label style={labelStyle}>Products</label>
+              <input value={form.products} onChange={e=>set("products",e.target.value)} placeholder="Vegetables, Fruits, Eggs, Honey" style={inputStyle}/>
+            </div>
+            <div>
+              <label style={labelStyle}>Description</label>
+              <textarea value={form.description} onChange={e=>set("description",e.target.value)} placeholder="What makes your farm special?" style={{...inputStyle,minHeight:70,resize:"vertical"}}/>
+            </div>
+            <button onClick={submit} disabled={!form.name||!form.city} style={{background:form.name&&form.city?"#1a1410":"#c4b89a",color:"#fefcf7",border:"none",borderRadius:100,padding:"13px 24px",fontSize:14,fontWeight:600,cursor:form.name&&form.city?"pointer":"not-allowed",outline:"none",fontFamily:"'Inter',sans-serif",letterSpacing:"0.3px",marginTop:4}}>Submit Listing →</button>
+            <p style={{fontSize:11,color:"#a09070",textAlign:"center",margin:"4px 0 0",lineHeight:1.5}}>* Required. We'll review and add your farm to the directory within 1-2 business days.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ════════════════════════════════════
+// LANDING PAGE — cinematic image hero
 // ════════════════════════════════════
 const Landing = ({ onEnter }) => {
   const [videoReady, setVideoReady] = useState(false);
   const [textVisible, setTextVisible] = useState(false);
+  const [showSubmit, setShowSubmit] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setTextVisible(true), 400);
@@ -127,9 +273,9 @@ const Landing = ({ onEnter }) => {
     }}>
       <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
-      {/* Image background — Pexels farmers market photo */}
+      {/* Image background — Pexels red barn photo */}
       <img
-        src="https://images.pexels.com/photos/8540180/pexels-photo-8540180.jpeg?auto=compress&cs=tinysrgb&w=1600"
+        src="https://images.pexels.com/photos/235725/pexels-photo-235725.jpeg?auto=compress&cs=tinysrgb&w=2000"
         alt=""
         style={{
           position: "absolute",
@@ -176,7 +322,7 @@ const Landing = ({ onEnter }) => {
         <div style={{display:"flex",gap:32,fontFamily:"'Inter',sans-serif",fontSize:13,color:"rgba(254,252,247,0.85)",fontWeight:500,letterSpacing:"0.5px"}}>
           <span style={{cursor:"pointer"}}>About</span>
           <span style={{cursor:"pointer"}}>Farms</span>
-          <span style={{cursor:"pointer"}}>List Yours</span>
+          <span style={{cursor:"pointer"}} onClick={()=>setShowSubmit(true)}>List Yours</span>
           <span style={{cursor:"pointer"}}>Contact</span>
         </div>
       </div>
@@ -214,8 +360,8 @@ const Landing = ({ onEnter }) => {
           transform: textVisible ? "translateY(0)" : "translateY(30px)",
           transition: "all 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s",
         }}>
-          Discover Texas's<br/>
-          <em style={{fontFamily:"'Fraunces',serif",fontStyle:"italic",fontWeight:300,color:"#e8dcc8"}}>finest harvest</em>
+          Discover the Lone Star<br/>
+          <em style={{fontFamily:"'Fraunces',serif",fontStyle:"italic",fontWeight:300,color:"#e8dcc8"}}>State's finest harvest</em>
         </h1>
 
         {/* Subheading */}
@@ -300,6 +446,8 @@ const Landing = ({ onEnter }) => {
           margin: "8px auto 0",
         }}/>
       </div>
+
+      {showSubmit && <SubmitFarmModal onClose={()=>setShowSubmit(false)}/>}
     </div>
   );
 };
@@ -310,7 +458,9 @@ const Landing = ({ onEnter }) => {
 const TexasMapD3 = ({ farms, selected, onSelect, filteredIds }) => {
   const [dims, setDims] = useState({ w: 380, h: 340 });
   const [tooltip, setTooltip] = useState(null);
+  const [transform, setTransform] = useState({ k: 1, x: 0, y: 0 });
   const containerRef = useRef(null);
+  const svgRef = useRef(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -321,6 +471,35 @@ const TexasMapD3 = ({ farms, selected, onSelect, filteredIds }) => {
     ro.observe(containerRef.current);
     return () => ro.disconnect();
   }, []);
+
+  // Setup d3 zoom
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const svg = d3.select(svgRef.current);
+    const zoom = d3.zoom()
+      .scaleExtent([1, 8])
+      .on("zoom", (e) => {
+        setTransform({ k: e.transform.k, x: e.transform.x, y: e.transform.y });
+      });
+    svg.call(zoom);
+    return () => { svg.on(".zoom", null); };
+  }, []);
+
+  // When a farm is selected, zoom to it
+  useEffect(() => {
+    if (!selected || !svgRef.current) return;
+    const svg = d3.select(svgRef.current);
+    const [px, py] = projection([selected.lng, selected.lat]) || [0, 0];
+    const k = 3;
+    const x = dims.w/2 - px*k;
+    const y = dims.h/2 - py*k;
+    svg.transition().duration(700).call(
+      d3.zoom().scaleExtent([1, 8]).on("zoom", (e) => {
+        setTransform({ k: e.transform.k, x: e.transform.x, y: e.transform.y });
+      }).transform,
+      d3.zoomIdentity.translate(x, y).scale(k)
+    );
+  }, [selected]);
 
   const texasGeo = useMemo(() => ({
     type: "Feature", geometry: { type: "Polygon", coordinates: [[
@@ -352,9 +531,10 @@ const TexasMapD3 = ({ farms, selected, onSelect, filteredIds }) => {
 
   return (
     <div ref={containerRef} style={{ width:"100%", height:"100%", position:"relative", background:"linear-gradient(180deg, #f0eadf 0%, #e8e0d0 40%)" }}>
-      <svg width={dims.w} height={dims.h} style={{display:"block"}}>
+      <svg ref={svgRef} width={dims.w} height={dims.h} style={{display:"block",cursor:"grab"}}>
         <rect width={dims.w} height={dims.h} fill="#f0eadf"/>
-        <path d={pathGen(texasGeo)} fill="#fefcf7" stroke="#c4b89a" strokeWidth="1.2"/>
+        <g transform={`translate(${transform.x},${transform.y}) scale(${transform.k})`}>
+        <path d={pathGen(texasGeo)} fill="#fefcf7" stroke="#c4b89a" strokeWidth={1.2/transform.k}/>
         <defs><pattern id="mg" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30,0 L0,0 0,30" fill="none" stroke="#d4c4a8" strokeWidth="0.3" opacity="0.4"/></pattern></defs>
         <path d={pathGen(texasGeo)} fill="url(#mg)"/>
         {farms.map(f => {
@@ -363,30 +543,56 @@ const TexasMapD3 = ({ farms, selected, onSelect, filteredIds }) => {
           const sel2 = selected?.id === f.id;
           const tc = TS[f.type] || {};
           if (x < 0 || x > dims.w || y < 0 || y > dims.h) return null;
+          const k = transform.k;
+          const baseSize = sel2 ? 7/k : 4/k;
+          const tallSize = sel2 ? 20/k : 13/k;
           return (
             <g key={f.id} style={{cursor:"pointer", opacity: vis ? 1 : 0.12}}
-              onClick={() => onSelect(f)}
+              onClick={(e) => {e.stopPropagation();onSelect(f);}}
               onMouseEnter={() => setTooltip({...f, x, y})}
               onMouseLeave={() => setTooltip(null)}>
-              <ellipse cx={x} cy={y+2} rx={sel2?5:2.5} ry={sel2?2:1.2} fill="rgba(0,0,0,0.18)"/>
-              <path d={`M${x},${y} C${x-(sel2?7:4)},${y-(sel2?10:7)} ${x-(sel2?7:4)},${y-(sel2?17:12)} ${x},${y-(sel2?20:13)} C${x+(sel2?7:4)},${y-(sel2?17:12)} ${x+(sel2?7:4)},${y-(sel2?10:7)} ${x},${y}Z`}
-                fill={sel2?"#c0392b":tc.c} stroke="#fff" strokeWidth={sel2?2:1.2}/>
-              <circle cx={x} cy={y-(sel2?13:9)} r={sel2?3:2} fill="#fff" opacity="0.9"/>
-              {sel2 && <circle cx={x} cy={y-13} r="8" fill="none" stroke="#c0392b" strokeWidth="1.5" opacity="0.4">
-                <animate attributeName="r" values="8;16;8" dur="2s" repeatCount="indefinite"/>
+              <ellipse cx={x} cy={y+2/k} rx={baseSize*0.7} ry={1.5/k} fill="rgba(0,0,0,0.18)"/>
+              <path d={`M${x},${y} C${x-baseSize},${y-tallSize*0.55} ${x-baseSize},${y-tallSize*0.85} ${x},${y-tallSize} C${x+baseSize},${y-tallSize*0.85} ${x+baseSize},${y-tallSize*0.55} ${x},${y}Z`}
+                fill={sel2?"#c0392b":tc.c} stroke="#fff" strokeWidth={(sel2?2:1.2)/k}/>
+              <circle cx={x} cy={y-tallSize*0.65} r={(sel2?3:2)/k} fill="#fff" opacity="0.9"/>
+              {sel2 && <circle cx={x} cy={y-tallSize*0.65} r={8/k} fill="none" stroke="#c0392b" strokeWidth={1.5/k} opacity="0.4">
+                <animate attributeName="r" values={`${8/k};${16/k};${8/k}`} dur="2s" repeatCount="indefinite"/>
                 <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
               </circle>}
             </g>
           );
         })}
+        </g>
       </svg>
       {tooltip && (
-        <div style={{position:"absolute", left:tooltip.x, top:tooltip.y-44, transform:"translateX(-50%)", background:"#1a1410", color:"#fefcf7", padding:"6px 12px", borderRadius:6, fontSize:11, fontWeight:500, whiteSpace:"nowrap", zIndex:30, pointerEvents:"none", boxShadow:"0 4px 16px rgba(0,0,0,0.2)", fontFamily:"'Inter',sans-serif"}}>
+        <div style={{position:"absolute", left:tooltip.x*transform.k+transform.x, top:tooltip.y*transform.k+transform.y-44, transform:"translateX(-50%)", background:"#1a1410", color:"#fefcf7", padding:"6px 12px", borderRadius:6, fontSize:11, fontWeight:500, whiteSpace:"nowrap", zIndex:30, pointerEvents:"none", boxShadow:"0 4px 16px rgba(0,0,0,0.2)", fontFamily:"'Inter',sans-serif"}}>
           {TS[tooltip.type]?.emoji} {tooltip.name}
           <div style={{fontSize:9, color:"#b8a88a", marginTop:1}}>{tooltip.city}, TX</div>
           <div style={{position:"absolute", bottom:-5, left:"50%", transform:"translateX(-50%)", width:0, height:0, borderLeft:"5px solid transparent", borderRight:"5px solid transparent", borderTop:"5px solid #1a1410"}}/>
         </div>
       )}
+
+      {/* Zoom controls */}
+      <div style={{position:"absolute", top:10, right:10, display:"flex", flexDirection:"column", gap:4, zIndex:20}}>
+        <button onClick={()=>{
+          const svg = d3.select(svgRef.current);
+          svg.transition().duration(250).call(
+            d3.zoom().scaleExtent([1,8]).on("zoom",(e)=>setTransform({k:e.transform.k,x:e.transform.x,y:e.transform.y})).scaleBy, 1.5
+          );
+        }} style={{width:32,height:32,borderRadius:6,background:"#fefcf7",border:"1px solid #d4c4a8",cursor:"pointer",fontSize:18,fontWeight:700,color:"#1a1410",outline:"none",boxShadow:"0 2px 6px rgba(0,0,0,0.1)",display:"flex",alignItems:"center",justifyContent:"center",padding:0}} title="Zoom in">+</button>
+        <button onClick={()=>{
+          const svg = d3.select(svgRef.current);
+          svg.transition().duration(250).call(
+            d3.zoom().scaleExtent([1,8]).on("zoom",(e)=>setTransform({k:e.transform.k,x:e.transform.x,y:e.transform.y})).scaleBy, 0.67
+          );
+        }} style={{width:32,height:32,borderRadius:6,background:"#fefcf7",border:"1px solid #d4c4a8",cursor:"pointer",fontSize:20,fontWeight:700,color:"#1a1410",outline:"none",boxShadow:"0 2px 6px rgba(0,0,0,0.1)",display:"flex",alignItems:"center",justifyContent:"center",padding:0}} title="Zoom out">−</button>
+        <button onClick={()=>{
+          const svg = d3.select(svgRef.current);
+          svg.transition().duration(400).call(
+            d3.zoom().scaleExtent([1,8]).on("zoom",(e)=>setTransform({k:e.transform.k,x:e.transform.x,y:e.transform.y})).transform, d3.zoomIdentity
+          );
+        }} style={{width:32,height:32,borderRadius:6,background:"#fefcf7",border:"1px solid #d4c4a8",cursor:"pointer",fontSize:11,fontWeight:600,color:"#1a1410",outline:"none",boxShadow:"0 2px 6px rgba(0,0,0,0.1)",display:"flex",alignItems:"center",justifyContent:"center",padding:0}} title="Reset">⟲</button>
+      </div>
       <div style={{position:"absolute", bottom:10, left:10, background:"rgba(254,252,247,0.95)", padding:"8px 12px", borderRadius:6, border:"1px solid #d4c4a8", fontSize:10, color:"#5a4a2f", zIndex:10, fontFamily:"'Inter',sans-serif", fontWeight:500}}>
         {Object.entries(TS).map(([t, s]) => (
           <div key={t} style={{display:"flex", alignItems:"center", gap:6, marginBottom:t!=="Farm Stand"?3:0}}>
@@ -407,7 +613,16 @@ const DD=({value:v,options:o,onChange})=>{const[open,setOpen]=useState(false);co
 // DASHBOARD
 // ════════════════════════════════════
 function Dashboard({ onBack }) {
-  const[search,setSearch]=useState("");const[region,setRegion]=useState("All Regions");const[type,setType]=useState("All Types");const[sp,setSp]=useState([]);const[sel,setSel]=useState(null);const[favs,setFavs]=useState(new Set());const[sf,setSf]=useState(false);const[ul,setUl]=useState(null);const[sort,setSort]=useState("name");const[loc,setLoc]=useState(false);
+  const[search,setSearch]=useState("");const[region,setRegion]=useState("All Regions");const[type,setType]=useState("All Types");const[sp,setSp]=useState([]);const[sel,setSel]=useState(null);const[favs,setFavs]=useState(new Set());const[sf,setSf]=useState(false);const[ul,setUl]=useState(null);const[sort,setSort]=useState("name");const[loc,setLoc]=useState(false);const[showSubmit,setShowSubmit]=useState(false);const[mapOpen,setMapOpen]=useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileView, setMobileView] = useState("list"); // 'list' or 'map'
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const tp=p=>setSp(v=>v.includes(p)?v.filter(x=>x!==p):[...v,p]);
   const tf=id=>setFavs(v=>{const n=new Set(v);n.has(id)?n.delete(id):n.add(id);return n;});
@@ -426,7 +641,7 @@ function Dashboard({ onBack }) {
       <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
 
       {/* HEADER — Modern minimal */}
-      <header style={{background:"#fefcf7",padding:"16px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10,flexShrink:0,borderBottom:"1px solid #ede5d5"}}>
+      <header style={{background:"#fefcf7",padding:isMobile?"10px 14px":"16px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:isMobile?6:10,flexShrink:0,borderBottom:"1px solid #ede5d5"}}>
         <button onClick={onBack} style={{display:"flex",alignItems:"center",gap:14,background:"none",border:"none",cursor:"pointer",padding:0,outline:"none"}}>
           <Logo size={42}/>
           <div style={{textAlign:"left"}}>
@@ -435,13 +650,13 @@ function Dashboard({ onBack }) {
           </div>
         </button>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <button style={{padding:"7px 14px",borderRadius:100,border:"1.5px solid #d4c4a8",background:"transparent",color:"#1a1410",fontSize:11,fontWeight:600,cursor:"pointer",outline:"none",fontFamily:"'Inter',sans-serif",letterSpacing:"0.3px"}}>List Your Farm</button>
+          <button onClick={()=>setShowSubmit(true)} style={{padding:"7px 14px",borderRadius:100,border:"1.5px solid #d4c4a8",background:"transparent",color:"#1a1410",fontSize:11,fontWeight:600,cursor:"pointer",outline:"none",fontFamily:"'Inter',sans-serif",letterSpacing:"0.3px"}}>List Your Farm</button>
           <button onClick={fm} disabled={loc} style={{padding:"7px 14px",borderRadius:100,border:`1.5px solid ${ul?"#5a7c3e":"#1a1410"}`,background:ul?"#5a7c3e":"#1a1410",color:"#fefcf7",fontSize:11,fontWeight:600,cursor:"pointer",outline:"none",fontFamily:"'Inter',sans-serif",letterSpacing:"0.3px"}}>{loc?"Locating...":ul?"📍 Near Me":"📍 Find Near Me"}</button>
         </div>
       </header>
 
       {/* FILTERS */}
-      <div style={{background:"#fefcf7",borderBottom:"1px solid #ede5d5",padding:"12px 28px",flexShrink:0}}>
+      <div style={{background:"#fefcf7",borderBottom:"1px solid #ede5d5",padding:isMobile?"8px 14px":"12px 28px",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
           <div style={{flex:"1 1 200px",display:"flex",alignItems:"center",gap:8,background:"#faf6ee",borderRadius:100,padding:"7px 14px",border:"1.5px solid #ede5d5",maxWidth:280}}>
             <span style={{fontSize:13}}>🔍</span><input type="text" placeholder="Search farms or cities..." value={search} onChange={e=>setSearch(e.target.value)} style={{border:"none",background:"transparent",outline:"none",fontFamily:"'Inter',sans-serif",fontSize:12,color:"#1a1410",width:"100%",fontWeight:500}}/>{search&&<button onClick={()=>setSearch("")} style={{background:"none",border:"none",cursor:"pointer",color:"#8a7a5a",padding:0,outline:"none",fontSize:14}}>✕</button>}
@@ -458,28 +673,74 @@ function Dashboard({ onBack }) {
         </div>
       </div>
 
-      <div style={{flex:1,display:"flex",overflow:"hidden"}}>
-        <div style={{flex:1,overflowY:"auto",padding:"20px 28px",background:"#faf6ee"}}>
+      {/* Mobile view toggle */}
+      {isMobile && (
+        <div style={{display:"flex",background:"#fefcf7",borderBottom:"1px solid #ede5d5",padding:"6px 12px",gap:6,flexShrink:0}}>
+          <button onClick={()=>setMobileView("list")} style={{flex:1,padding:"8px",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",border:"none",background:mobileView==="list"?"#1a1410":"transparent",color:mobileView==="list"?"#fefcf7":"#1a1410",outline:"none",fontFamily:"'Inter',sans-serif"}}>📋 List</button>
+          <button onClick={()=>setMobileView("map")} style={{flex:1,padding:"8px",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",border:"none",background:mobileView==="map"?"#1a1410":"transparent",color:mobileView==="map"?"#fefcf7":"#1a1410",outline:"none",fontFamily:"'Inter',sans-serif"}}>🗺️ Map</button>
+        </div>
+      )}
+
+      <div style={{flex:1,display:"flex",overflow:"hidden",flexDirection:isMobile?"column":"row"}}>
+        {/* CARDS LIST */}
+        <div style={{
+          flex:1,
+          overflowY:"auto",
+          padding:isMobile?"12px 14px":"20px 28px",
+          background:"#faf6ee",
+          display:isMobile&&mobileView!=="list"?"none":"block",
+        }}>
           {filtered.length===0?<div style={{textAlign:"center",padding:"60px 20px",color:"#a09070"}}><div style={{fontSize:48}}>🌾</div><p style={{fontFamily:"'Fraunces',serif",fontSize:18,fontWeight:500,color:"#5a4a30"}}>No farms found</p></div>
-          :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:14}}>
+          :<div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(auto-fill,minmax(300px,1fr))",gap:isMobile?10:14}}>
             {filtered.map(f=>{const tc=TS[f.type]||{};const isSel=sel?.id===f.id;const dist=gd(f);return(
-              <button key={f.id} onClick={()=>hs(f)} style={{display:"block",width:"100%",textAlign:"left",background:isSel?"#fefcf7":"#fff",border:isSel?`1.5px solid ${tc.c}`:"1px solid #ede5d5",borderRadius:14,padding:"16px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:isSel?"0 6px 20px rgba(90,74,47,0.08)":"0 1px 2px rgba(0,0,0,0.02)",outline:"none",fontFamily:"'Inter',sans-serif"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:8}}>
-                  <div style={{flex:1}}>
-                    <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:4}}><span style={{fontSize:14}}>{tc.emoji}</span>{favs.has(f.id)&&<span style={{fontSize:10,color:"#c0392b"}}>♥</span>}<span style={{fontSize:9,padding:"2px 8px",borderRadius:100,background:tc.bg,color:tc.c,fontWeight:600,letterSpacing:"0.3px",textTransform:"uppercase"}}>{f.type}</span></div>
-                    <h3 style={{margin:"4px 0 4px",fontSize:15,fontWeight:600,color:"#1a1410",fontFamily:"'Fraunces',Georgia,serif",lineHeight:1.25,letterSpacing:"-0.2px"}}>{f.name}</h3>
-                    <div style={{fontSize:11,color:"#8a7a5a",fontWeight:500}}>{f.city}, TX · {f.schedule}</div>
+              <div key={f.id} onClick={()=>{hs(f);if(isMobile)setMobileView("map");}} style={{display:"flex",flexDirection:isMobile?"row":"column",width:"100%",textAlign:"left",background:isSel?"#fefcf7":"#fff",border:isSel?`1.5px solid ${tc.c}`:"1px solid #ede5d5",borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"all 0.2s",boxShadow:isSel?"0 6px 20px rgba(90,74,47,0.08)":"0 1px 2px rgba(0,0,0,0.02)",fontFamily:"'Inter',sans-serif"}}>
+                {/* Farm image */}
+                <div style={{
+                  width:isMobile?100:"100%",
+                  height:isMobile?100:140,
+                  flexShrink:0,
+                  position:"relative",
+                  background:`linear-gradient(135deg,${tc.bg},${tc.c}33)`,
+                  overflow:"hidden",
+                }}>
+                  <img src={getFarmImage(f)} alt={f.name} loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+                  {/* Gradient overlay */}
+                  <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.35))",pointerEvents:"none"}}/>
+                  {/* Type badge */}
+                  <span style={{position:"absolute",top:8,left:8,fontSize:9,padding:"3px 8px",borderRadius:100,background:"rgba(254,252,247,0.95)",color:tc.c,fontWeight:700,letterSpacing:"0.3px",textTransform:"uppercase",backdropFilter:"blur(4px)"}}>{tc.emoji} {f.type}</span>
+                  {/* Favorite heart */}
+                  <button onClick={(e)=>{e.stopPropagation();tf(f.id);}} style={{position:"absolute",top:6,right:6,background:"rgba(254,252,247,0.95)",border:"none",borderRadius:"50%",width:26,height:26,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,outline:"none",backdropFilter:"blur(4px)"}}>{favs.has(f.id)?"❤️":"🤍"}</button>
+                </div>
+                {/* Farm info */}
+                <div style={{flex:1,padding:isMobile?"10px 12px":"14px 16px",display:"flex",flexDirection:"column",justifyContent:"space-between",minWidth:0}}>
+                  <div>
+                    <h3 style={{margin:"0 0 3px",fontSize:isMobile?14:15,fontWeight:600,color:"#1a1410",fontFamily:"'Fraunces',Georgia,serif",lineHeight:1.2,letterSpacing:"-0.2px",overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{f.name}</h3>
+                    <div style={{fontSize:11,color:"#8a7a5a",fontWeight:500}}>📍 {f.city}, TX</div>
+                    {!isMobile&&<div style={{fontSize:11,color:"#8a7a5a",fontWeight:500,marginTop:2}}>🕐 {f.schedule}</div>}
                     {dist!==null&&<div style={{fontSize:10,color:"#5a7c3e",marginTop:3,fontWeight:600}}>{dist.toFixed(1)} mi away</div>}
                   </div>
-                  <Stars r={f.rating} s/>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8,paddingTop:6,borderTop:isMobile?"none":"1px solid #f5efe3"}}>
+                    <Stars r={f.rating} s/>
+                    <a href={getFarmUrl(f)} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontSize:10,color:"#5a7c3e",fontWeight:600,textDecoration:"none",letterSpacing:"0.3px"}}>Visit ↗</a>
+                  </div>
                 </div>
-                <div style={{display:"flex",gap:4,marginTop:10,paddingTop:10,borderTop:"1px solid #f5efe3"}}>{f.products.slice(0,7).map(p=><span key={p} title={p} style={{width:24,height:24,borderRadius:"50%",background:"#faf6ee",border:"1px solid #ede5d5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>{ic(p)}</span>)}{f.products.length>7&&<span style={{width:24,height:24,borderRadius:"50%",background:"#f5efe3",border:"1px solid #ede5d5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:600,color:"#8a7a5a"}}>+{f.products.length-7}</span>}</div>
-              </button>);})}
+              </div>
+            );})}
           </div>}
         </div>
 
-        <div style={{width:400,minWidth:360,flexShrink:0,display:"flex",flexDirection:"column",borderLeft:"1px solid #ede5d5",background:"#fefcf7"}}>
-          <div style={{height:sel?"42%":"100%",flexShrink:0,transition:"height 0.3s"}}>
+        {/* MAP + DETAIL SIDEBAR */}
+        <div style={{
+          width:isMobile?"100%":400,
+          minWidth:isMobile?"auto":360,
+          flexShrink:0,
+          display:isMobile&&mobileView!=="map"?"none":"flex",
+          flexDirection:"column",
+          borderLeft:isMobile?"none":"1px solid #ede5d5",
+          background:"#fefcf7",
+          flex:isMobile?1:"0 0 auto",
+        }}>
+          <div style={{height:sel?(isMobile?"50%":"42%"):(isMobile?"100%":"100%"),flexShrink:0,transition:"height 0.3s",position:"relative"}}>
             <TexasMapD3 farms={FARMS} selected={sel} onSelect={hs} filteredIds={fids}/>
           </div>
           {sel&&(()=>{const tc=TS[sel.type]||{};const dist=gd(sel);return(
@@ -510,10 +771,17 @@ function Dashboard({ onBack }) {
                   <div style={{fontSize:11,color:"#1a1410",fontWeight:500}}>{sel.address}</div>
                   {sel.website&&<div style={{fontSize:10,color:"#5a7c3e",fontWeight:600,marginTop:3}}>↗ {sel.website}</div>}
                 </div>
+                {/* Visit Farm CTA button */}
+                <a href={getFarmUrl(sel)} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:12,background:"#1a1410",color:"#fefcf7",borderRadius:100,padding:"12px 18px",fontSize:13,fontWeight:600,textDecoration:"none",fontFamily:"'Inter',sans-serif",letterSpacing:"0.3px"}}>
+                  {sel.website?"Visit Website":"Search for this farm"} ↗
+                </a>
               </div>
             </div>);})()}
         </div>
       </div>
+
+      {/* Submit Farm Modal */}
+      {showSubmit && <SubmitFarmModal onClose={()=>setShowSubmit(false)}/>}
     </div>
   );
 }
