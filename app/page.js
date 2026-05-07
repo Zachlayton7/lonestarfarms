@@ -105,37 +105,95 @@ const TYPES=["All Types","Farmers Market","Farm","Farm Stand"];
 const PRODUCTS=["Vegetables","Fruits","Meat","Eggs","Cheese","Honey","Baked Goods","Herbs","Flowers","Seafood","Peaches","Citrus","Wine","Pecans"];
 const hav=(a,b,c,e)=>{const R=3959,x=(c-a)*Math.PI/180,y=(e-b)*Math.PI/180;const s=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s));};
 
-// Image library for farm types - using verified free Pexels stock photos
-const FARM_IMAGES = {
-  "Farmers Market": [
+// Image library — verified Pexels photos that look authentically Texas/American rural
+// (avoiding any clearly foreign locations)
+const TEXAS_IMAGES = {
+  // Open fields, ranches, farms — quintessential Texas
+  field: [
+    "https://images.pexels.com/photos/235725/pexels-photo-235725.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/265216/pexels-photo-265216.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/158827/field-corn-air-frisch-158827.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/247599/pexels-photo-247599.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/248880/pexels-photo-248880.jpeg?auto=compress&cs=tinysrgb&w=600",
+  ],
+  // Farmers market: outdoor wooden stalls, fresh produce displays
+  market: [
     "https://images.pexels.com/photos/375896/pexels-photo-375896.jpeg?auto=compress&cs=tinysrgb&w=600",
-    "https://images.pexels.com/photos/1300972/pexels-photo-1300972.jpeg?auto=compress&cs=tinysrgb&w=600",
-    "https://images.pexels.com/photos/2255935/pexels-photo-2255935.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/2611817/pexels-photo-2611817.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/2255925/pexels-photo-2255925.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/2252584/pexels-photo-2252584.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
-  "Farm": [
-    "https://images.pexels.com/photos/235725/pexels-photo-235725.jpeg?auto=compress&cs=tinysrgb&w=600",
-    "https://images.pexels.com/photos/265216/pexels-photo-265216.jpeg?auto=compress&cs=tinysrgb&w=600",
-    "https://images.pexels.com/photos/158827/field-corn-air-frisch-158827.jpeg?auto=compress&cs=tinysrgb&w=600",
-    "https://images.pexels.com/photos/957024/forest-trees-perspective-bright-957024.jpeg?auto=compress&cs=tinysrgb&w=600",
-    "https://images.pexels.com/photos/247599/pexels-photo-247599.jpeg?auto=compress&cs=tinysrgb&w=600",
-    "https://images.pexels.com/photos/248880/pexels-photo-248880.jpeg?auto=compress&cs=tinysrgb&w=600",
-  ],
-  "Farm Stand": [
+  // Roadside / rustic farm stands
+  stand: [
     "https://images.pexels.com/photos/2255801/pexels-photo-2255801.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/375899/pexels-photo-375899.jpeg?auto=compress&cs=tinysrgb&w=600",
     "https://images.pexels.com/photos/616404/pexels-photo-616404.jpeg?auto=compress&cs=tinysrgb&w=600",
   ],
+  // Region-specific themes
+  hillCountry: [ // Peaches, lavender, vineyards
+    "https://images.pexels.com/photos/162389/lost-places-old-decay-ruin-162389.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/30659/pexels-photo-30659.jpg?auto=compress&cs=tinysrgb&w=600",
+  ],
+  coast: [ // Seafood, gulf
+    "https://images.pexels.com/photos/1078974/pexels-photo-1078974.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/3296542/pexels-photo-3296542.jpeg?auto=compress&cs=tinysrgb&w=600",
+  ],
+  desert: [ // West Texas, desert farms
+    "https://images.pexels.com/photos/1166209/pexels-photo-1166209.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/1166644/pexels-photo-1166644.jpeg?auto=compress&cs=tinysrgb&w=600",
+  ],
+  citrus: [ // Rio Grande Valley
+    "https://images.pexels.com/photos/952356/pexels-photo-952356.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg?auto=compress&cs=tinysrgb&w=600",
+  ],
+  ranch: [ // Panhandle, ranching
+    "https://images.pexels.com/photos/144234/pexels-photo-144234.jpeg?auto=compress&cs=tinysrgb&w=600",
+    "https://images.pexels.com/photos/162801/cattle-ranching-fence-meadow-162801.jpeg?auto=compress&cs=tinysrgb&w=600",
+  ],
 };
-// Universal fallback if any image fails to load
-const FALLBACK_IMAGE = "https://images.pexels.com/photos/235725/pexels-photo-235725.jpeg?auto=compress&cs=tinysrgb&w=600";
 
+// Smart image picker — uses farm's products, region, and type to find a relevant photo
 const getFarmImage = (farm) => {
-  const list = FARM_IMAGES[farm.type] || FARM_IMAGES["Farm"];
+  const products = farm.products || [];
+  
+  // Region-specific overrides for unique Texas locales
+  if (farm.region === "Hill Country" && (products.includes("Peaches") || products.includes("Wine") || products.includes("Lavender"))) {
+    const list = TEXAS_IMAGES.hillCountry;
+    return list[farm.id % list.length];
+  }
+  if (products.includes("Seafood")) {
+    const list = TEXAS_IMAGES.coast;
+    return list[farm.id % list.length];
+  }
+  if (products.includes("Citrus") || farm.region === "Rio Grande Valley") {
+    const list = TEXAS_IMAGES.citrus;
+    return list[farm.id % list.length];
+  }
+  if (farm.region === "West Texas" || products.includes("Chile Peppers")) {
+    const list = TEXAS_IMAGES.desert;
+    return list[farm.id % list.length];
+  }
+  if (farm.region === "Panhandle" && products.includes("Meat")) {
+    const list = TEXAS_IMAGES.ranch;
+    return list[farm.id % list.length];
+  }
+  
+  // Type-based fallback
+  if (farm.type === "Farmers Market") {
+    const list = TEXAS_IMAGES.market;
+    return list[farm.id % list.length];
+  }
+  if (farm.type === "Farm Stand") {
+    const list = TEXAS_IMAGES.stand;
+    return list[farm.id % list.length];
+  }
+  // Default: farm field
+  const list = TEXAS_IMAGES.field;
   return list[farm.id % list.length];
 };
+
+// Universal fallback if any image fails to load
+const FALLBACK_IMAGE = "https://images.pexels.com/photos/235725/pexels-photo-235725.jpeg?auto=compress&cs=tinysrgb&w=600";
 // Get a working URL for any farm (their website if listed, else Google search)
 const getFarmUrl = (farm) => {
   if (farm.website) {
@@ -261,10 +319,15 @@ const SubmitFarmModal = ({ onClose }) => {
 // ════════════════════════════════════
 // LANDING PAGE — cinematic image hero
 // ════════════════════════════════════
-const Landing = ({ onEnter }) => {
+const Landing = ({ onEnter, onSelectFarm }) => {
   const [videoReady, setVideoReady] = useState(false);
   const [textVisible, setTextVisible] = useState(false);
   const [showSubmit, setShowSubmit] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const [showContact, setShowContact] = useState(false);
+  const [showFeatured, setShowFeatured] = useState(false);
+  // Farm of the Week — Houston Heights Market (id 11)
+  const featuredFarm = FARMS.find(f => f.id === 11);
 
   useEffect(() => {
     const t = setTimeout(() => setTextVisible(true), 400);
@@ -325,10 +388,10 @@ const Landing = ({ onEnter }) => {
           <span style={{fontFamily:"'Fraunces',serif",fontSize:20,fontWeight:600,color:"#fefcf7",letterSpacing:"-0.3px"}}>Lone Star Farms</span>
         </div>
         <div style={{display:"flex",gap:32,fontFamily:"'Inter',sans-serif",fontSize:13,color:"rgba(254,252,247,0.85)",fontWeight:500,letterSpacing:"0.5px"}}>
-          <span style={{cursor:"pointer"}}>About</span>
-          <span style={{cursor:"pointer"}}>Farms</span>
+          <span style={{cursor:"pointer"}} onClick={()=>setShowAbout(true)}>About</span>
+          <span style={{cursor:"pointer"}} onClick={onEnter}>Farms</span>
           <span style={{cursor:"pointer"}} onClick={()=>setShowSubmit(true)}>List Yours</span>
-          <span style={{cursor:"pointer"}}>Contact</span>
+          <span style={{cursor:"pointer"}} onClick={()=>setShowContact(true)}>Contact</span>
         </div>
       </div>
 
@@ -413,6 +476,38 @@ const Landing = ({ onEnter }) => {
           <span style={{display:"inline-block",fontSize:18,marginTop:-1}}>→</span>
         </button>
 
+        {/* Farm of the Week link */}
+        {featuredFarm && (
+          <button
+            onClick={() => setShowFeatured(true)}
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(254,252,247,0.3)",
+              borderRadius: 100,
+              padding: "10px 24px",
+              marginTop: 16,
+              fontSize: 12,
+              fontWeight: 500,
+              fontFamily: "'Inter',sans-serif",
+              color: "rgba(254,252,247,0.85)",
+              letterSpacing: "0.5px",
+              cursor: "pointer",
+              outline: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              opacity: textVisible ? 1 : 0,
+              transform: textVisible ? "translateY(0)" : "translateY(10px)",
+              transition: "all 1.4s cubic-bezier(0.22,1,0.36,1) 0.7s, background 0.2s, border-color 0.2s",
+            }}
+            onMouseEnter={(e)=>{e.currentTarget.style.background="rgba(254,252,247,0.1)";e.currentTarget.style.borderColor="rgba(254,252,247,0.5)"}}
+            onMouseLeave={(e)=>{e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor="rgba(254,252,247,0.3)"}}
+          >
+            <span style={{display:"inline-block",width:6,height:6,borderRadius:"50%",background:"#bf0a30",animation:"pulse 2s infinite"}}/>
+            ★ Farm of the Week
+          </button>
+        )}
+
         {/* Stats row */}
         <div style={{
           display: "flex", gap: "clamp(32px, 6vw, 80px)",
@@ -452,7 +547,103 @@ const Landing = ({ onEnter }) => {
         }}/>
       </div>
 
+      {/* FARM OF THE WEEK — modal */}
+      {showFeatured && featuredFarm && (
+        <div onClick={()=>setShowFeatured(false)} style={{position:"fixed",inset:0,background:"rgba(20,20,16,0.75)",backdropFilter:"blur(10px)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"'Inter',sans-serif"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#fefcf7",borderRadius:20,width:"100%",maxWidth:520,maxHeight:"90vh",overflowY:"auto",boxShadow:"0 30px 80px rgba(0,0,0,0.5)",animation:"fadeUp 0.4s cubic-bezier(0.22,1,0.36,1)"}}>
+            <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(20px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}`}</style>
+            
+            {/* Hero image */}
+            <div style={{position:"relative",height:240,overflow:"hidden",borderRadius:"20px 20px 0 0"}}>
+              <img 
+                src={getFarmImage(featuredFarm)} 
+                alt={featuredFarm.name}
+                onError={(e)=>{e.currentTarget.src=FALLBACK_IMAGE;e.currentTarget.onerror=null;}}
+                style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
+              />
+              <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.6))"}}/>
+              {/* Close button */}
+              <button onClick={()=>setShowFeatured(false)} style={{position:"absolute",top:12,right:12,background:"rgba(254,252,247,0.95)",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",fontSize:16,color:"#1a1410",outline:"none",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,backdropFilter:"blur(8px)"}}>✕</button>
+              {/* Farm of the Week badge */}
+              <div style={{position:"absolute",top:14,left:14,background:"rgba(191,10,48,0.95)",backdropFilter:"blur(8px)",color:"#fefcf7",padding:"5px 12px",borderRadius:100,fontSize:9,fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",display:"flex",alignItems:"center",gap:5}}>
+                <span style={{display:"inline-block",width:5,height:5,borderRadius:"50%",background:"#fefcf7",animation:"pulse 2s infinite"}}/>
+                ★ Farm of the Week
+              </div>
+              {/* Farm name on image */}
+              <div style={{position:"absolute",bottom:18,left:20,right:20}}>
+                <div style={{fontSize:9,padding:"3px 9px",borderRadius:100,background:"rgba(254,252,247,0.95)",color:TS[featuredFarm.type]?.c,fontWeight:700,letterSpacing:"0.3px",textTransform:"uppercase",display:"inline-block",marginBottom:8}}>{TS[featuredFarm.type]?.emoji} {featuredFarm.type}</div>
+                <h2 style={{margin:0,fontFamily:"'Fraunces',Georgia,serif",fontSize:28,fontWeight:600,color:"#fefcf7",lineHeight:1.1,letterSpacing:"-0.4px",textShadow:"0 2px 12px rgba(0,0,0,0.4)"}}>{featuredFarm.name}</h2>
+                <div style={{fontSize:12,color:"rgba(254,252,247,0.95)",fontWeight:500,marginTop:4,letterSpacing:"0.3px"}}>📍 {featuredFarm.city}, Texas</div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div style={{padding:"22px 28px 24px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                <Stars r={featuredFarm.rating}/>
+                <div style={{fontSize:11,color:"#8a7a5a",fontWeight:500}}>🕐 {featuredFarm.schedule}</div>
+              </div>
+              
+              <p style={{fontSize:14,color:"#3a3020",lineHeight:1.65,margin:"0 0 18px"}}>{featuredFarm.description}</p>
+              
+              {/* Products */}
+              <div style={{background:"#faf6ee",borderRadius:12,padding:"14px 16px",border:"1px solid #ede5d5",marginBottom:14}}>
+                <div style={{fontSize:9,fontWeight:700,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",marginBottom:8}}>What's Available</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:5}}>{featuredFarm.products.map(p=><Chip key={p} name={p}/>)}</div>
+              </div>
+              
+              {/* Action buttons */}
+              <div style={{display:"flex",gap:8}}>
+                <button onClick={()=>{setShowFeatured(false);if(onSelectFarm)onSelectFarm(featuredFarm);}} style={{flex:1,background:"#1a1410",color:"#fefcf7",border:"none",borderRadius:100,padding:"13px 18px",fontSize:13,fontWeight:600,cursor:"pointer",outline:"none",fontFamily:"'Inter',sans-serif",letterSpacing:"0.3px"}}>View on Map →</button>
+                <a href={getFarmUrl(featuredFarm)} target="_blank" rel="noopener noreferrer" style={{flex:1,background:"transparent",color:"#1a1410",border:"1.5px solid #d4c4a8",borderRadius:100,padding:"11.5px 18px",fontSize:13,fontWeight:600,cursor:"pointer",outline:"none",fontFamily:"'Inter',sans-serif",letterSpacing:"0.3px",textDecoration:"none",textAlign:"center"}}>Visit Site ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`@keyframes pulse {0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
+
       {showSubmit && <SubmitFarmModal onClose={()=>setShowSubmit(false)}/>}
+
+      {/* About Modal */}
+      {showAbout && (
+        <div onClick={()=>setShowAbout(false)} style={{position:"fixed",inset:0,background:"rgba(20,20,16,0.7)",backdropFilter:"blur(8px)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"'Inter',sans-serif"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#fefcf7",borderRadius:20,width:"100%",maxWidth:560,maxHeight:"90vh",overflowY:"auto",boxShadow:"0 30px 80px rgba(0,0,0,0.4)",padding:"32px 36px"}}>
+            <button onClick={()=>setShowAbout(false)} style={{float:"right",background:"none",border:"none",fontSize:22,cursor:"pointer",color:"#8a7a5a",outline:"none",padding:4,lineHeight:1}}>✕</button>
+            <h2 style={{margin:"0 0 4px",fontFamily:"'Fraunces',Georgia,serif",fontSize:32,fontWeight:600,color:"#1a1410",letterSpacing:"-0.5px"}}>About Lone Star Farms</h2>
+            <div style={{width:40,height:2,background:"#5a7c3e",margin:"12px 0 20px"}}/>
+            <p style={{fontSize:14,color:"#3a3020",lineHeight:1.7,margin:"0 0 14px"}}>Lone Star Farms is a directory connecting Texans with the local farms, ranches, and farmers markets growing fresh, real food across the Lone Star State.</p>
+            <p style={{fontSize:14,color:"#3a3020",lineHeight:1.7,margin:"0 0 14px"}}>We believe in <em style={{fontFamily:"'Fraunces',serif"}}>knowing your farmer, knowing your food.</em> When you buy direct, you support family operations, get fresher produce, and reduce food miles. Texas has some of the most diverse agriculture in the country — Hill Country peaches, Gulf Coast seafood, Panhandle ranches, Rio Grande citrus — and we want to make it easy to find it all.</p>
+            <p style={{fontSize:14,color:"#3a3020",lineHeight:1.7,margin:"0 0 24px"}}>Built by Texans, for Texans. 🌱</p>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,paddingTop:18,borderTop:"1px solid #ede5d5"}}>
+              <div><div style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:600,color:"#5a7c3e"}}>{FARMS.length}+</div><div style={{fontSize:10,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,marginTop:2}}>Local Farms</div></div>
+              <div><div style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:600,color:"#5a7c3e"}}>10</div><div style={{fontSize:10,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,marginTop:2}}>Texas Regions</div></div>
+              <div><div style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:600,color:"#5a7c3e"}}>100%</div><div style={{fontSize:10,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,marginTop:2}}>Farm Direct</div></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Modal */}
+      {showContact && (
+        <div onClick={()=>setShowContact(false)} style={{position:"fixed",inset:0,background:"rgba(20,20,16,0.7)",backdropFilter:"blur(8px)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"'Inter',sans-serif"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#fefcf7",borderRadius:20,width:"100%",maxWidth:480,boxShadow:"0 30px 80px rgba(0,0,0,0.4)",padding:"32px 36px"}}>
+            <button onClick={()=>setShowContact(false)} style={{float:"right",background:"none",border:"none",fontSize:22,cursor:"pointer",color:"#8a7a5a",outline:"none",padding:4,lineHeight:1}}>✕</button>
+            <h2 style={{margin:"0 0 4px",fontFamily:"'Fraunces',Georgia,serif",fontSize:30,fontWeight:600,color:"#1a1410",letterSpacing:"-0.5px"}}>Get in Touch</h2>
+            <div style={{width:40,height:2,background:"#5a7c3e",margin:"12px 0 20px"}}/>
+            <p style={{fontSize:14,color:"#3a3020",lineHeight:1.65,margin:"0 0 24px"}}>Got a question, suggestion, or just want to say howdy? We'd love to hear from you.</p>
+            <a href="mailto:hello@lonestarfarms.org" style={{display:"flex",alignItems:"center",gap:14,padding:"16px 18px",background:"#faf6ee",borderRadius:14,border:"1px solid #ede5d5",textDecoration:"none",marginBottom:10}}>
+              <div style={{width:42,height:42,borderRadius:"50%",background:"#1a1410",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>✉️</div>
+              <div><div style={{fontSize:10,fontWeight:700,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase"}}>Email</div><div style={{fontSize:14,color:"#1a1410",fontWeight:600,marginTop:2}}>hello@lonestarfarms.org</div></div>
+            </a>
+            <div style={{display:"flex",alignItems:"center",gap:14,padding:"16px 18px",background:"#faf6ee",borderRadius:14,border:"1px solid #ede5d5"}}>
+              <div style={{width:42,height:42,borderRadius:"50%",background:"#1a1410",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🤠</div>
+              <div><div style={{fontSize:10,fontWeight:700,color:"#8a7a5a",letterSpacing:"1px",textTransform:"uppercase"}}>Based in</div><div style={{fontSize:14,color:"#1a1410",fontWeight:600,marginTop:2}}>Houston, Texas</div></div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -534,6 +725,23 @@ const TexasMapD3 = ({ farms, selected, onSelect, filteredIds }) => {
   const projection = useMemo(() => d3.geoAlbers().center([0, 31.2]).rotate([99.5, 0]).parallels([27, 35]).translate([dims.w/2, dims.h/2]).scale(Math.min(dims.w, dims.h) * 3.8), [dims]);
   const pathGen = useMemo(() => d3.geoPath().projection(projection), [projection]);
 
+  // Major Texas cities for map orientation
+  const cities = useMemo(() => [
+    {name:"Houston",lat:29.7604,lng:-95.3698,size:"major"},
+    {name:"Dallas",lat:32.7767,lng:-96.7970,size:"major"},
+    {name:"Austin",lat:30.2672,lng:-97.7431,size:"major"},
+    {name:"San Antonio",lat:29.4241,lng:-98.4936,size:"major"},
+    {name:"Fort Worth",lat:32.7555,lng:-97.3308,size:"major"},
+    {name:"El Paso",lat:31.7619,lng:-106.4850,size:"mid"},
+    {name:"Lubbock",lat:33.5779,lng:-101.8552,size:"mid"},
+    {name:"Amarillo",lat:35.2220,lng:-101.8313,size:"mid"},
+    {name:"Corpus Christi",lat:27.8006,lng:-97.3964,size:"mid"},
+    {name:"Waco",lat:31.5493,lng:-97.1467,size:"small"},
+    {name:"Tyler",lat:32.3513,lng:-95.3011,size:"small"},
+    {name:"McAllen",lat:26.2034,lng:-98.2300,size:"small"},
+    {name:"Midland",lat:31.9973,lng:-102.0779,size:"small"},
+  ], []);
+
   return (
     <div ref={containerRef} style={{ width:"100%", height:"100%", position:"relative", background:"linear-gradient(180deg, #f0eadf 0%, #e8e0d0 40%)" }}>
       <svg ref={svgRef} width={dims.w} height={dims.h} style={{display:"block",cursor:"grab"}}>
@@ -542,6 +750,45 @@ const TexasMapD3 = ({ farms, selected, onSelect, filteredIds }) => {
         <path d={pathGen(texasGeo)} fill="#fefcf7" stroke="#c4b89a" strokeWidth={1.2/transform.k}/>
         <defs><pattern id="mg" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30,0 L0,0 0,30" fill="none" stroke="#d4c4a8" strokeWidth="0.3" opacity="0.4"/></pattern></defs>
         <path d={pathGen(texasGeo)} fill="url(#mg)"/>
+
+        {/* Major Texas cities for orientation */}
+        {cities.map(c => {
+          const [x, y] = projection([c.lng, c.lat]) || [0, 0];
+          if (x < 0 || x > dims.w || y < 0 || y > dims.h) return null;
+          const k = transform.k;
+          const isMajor = c.size === "major";
+          const isMid = c.size === "mid";
+          const dotR = (isMajor ? 3 : isMid ? 2 : 1.5) / k;
+          const fontSize = (isMajor ? 11 : isMid ? 9 : 8) / k;
+          return (
+            <g key={c.name} pointerEvents="none">
+              {/* Halo */}
+              <circle cx={x} cy={y} r={dotR*1.8} fill="#fefcf7" opacity="0.7"/>
+              {/* Dot */}
+              <circle cx={x} cy={y} r={dotR} fill="#1a1410"/>
+              {/* Label background pill */}
+              <rect 
+                x={x + dotR*2} 
+                y={y - fontSize*0.65} 
+                width={c.name.length * fontSize*0.55 + 6/k}
+                height={fontSize*1.3} 
+                rx={fontSize*0.4} 
+                fill="#fefcf7" 
+                opacity="0.85"
+              />
+              {/* Label */}
+              <text 
+                x={x + dotR*2 + 3/k} 
+                y={y + fontSize*0.32} 
+                fontFamily="Inter, sans-serif" 
+                fontSize={fontSize}
+                fontWeight={isMajor ? 700 : 600}
+                fill="#1a1410"
+                letterSpacing={0.2/k}
+              >{c.name}</text>
+            </g>
+          );
+        })}
         {farms.map(f => {
           const [x, y] = projection([f.lng, f.lat]) || [0, 0];
           const vis = filteredIds.has(f.id);
@@ -617,10 +864,11 @@ const DD=({value:v,options:o,onChange})=>{const[open,setOpen]=useState(false);co
 // ════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════
-function Dashboard({ onBack }) {
-  const[search,setSearch]=useState("");const[region,setRegion]=useState("All Regions");const[type,setType]=useState("All Types");const[sp,setSp]=useState([]);const[sel,setSel]=useState(null);const[favs,setFavs]=useState(new Set());const[sf,setSf]=useState(false);const[ul,setUl]=useState(null);const[sort,setSort]=useState("name");const[loc,setLoc]=useState(false);const[showSubmit,setShowSubmit]=useState(false);const[mapOpen,setMapOpen]=useState(false);
+function Dashboard({ onBack, initialFarm }) {
+  const[search,setSearch]=useState("");const[region,setRegion]=useState("All Regions");const[type,setType]=useState("All Types");const[sp,setSp]=useState([]);const[sel,setSel]=useState(initialFarm||null);const[favs,setFavs]=useState(new Set());const[sf,setSf]=useState(false);const[ul,setUl]=useState(null);const[sort,setSort]=useState("name");const[loc,setLoc]=useState(false);const[showSubmit,setShowSubmit]=useState(false);const[mapOpen,setMapOpen]=useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [mobileView, setMobileView] = useState("list"); // 'list' or 'map'
+  const [mobileView, setMobileView] = useState(initialFarm ? "map" : "list"); // 'list' or 'map'
+  const [viewMode, setViewMode] = useState("split"); // 'split' | 'mapOnly' | 'listOnly'
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -671,6 +919,14 @@ function Dashboard({ onBack }) {
           <button onClick={()=>setSf(!sf)} style={{padding:"7px 13px",borderRadius:100,fontSize:11,fontWeight:600,cursor:"pointer",border:sf?"1.5px solid #c0392b":"1.5px solid #d4c4a8",background:sf?"#fbe9e7":"transparent",color:sf?"#c0392b":"#1a1410",outline:"none",fontFamily:"'Inter',sans-serif"}}>♥ Saved{favs.size>0?` ${favs.size}`:""}</button>
           {hf&&<button onClick={ca} style={{padding:"7px 11px",borderRadius:100,fontSize:10,fontWeight:600,cursor:"pointer",border:"1.5px solid #c0392b",background:"transparent",color:"#c0392b",outline:"none"}}>Clear</button>}
           <span style={{fontSize:11,color:"#8a7a5a",fontWeight:500,marginLeft:"auto",fontFamily:"'Inter',sans-serif"}}>{filtered.length} of {FARMS.length}</span>
+          {/* Desktop view mode toggle */}
+          {!isMobile && (
+            <div style={{display:"flex",background:"#faf6ee",borderRadius:100,padding:3,gap:2,border:"1px solid #ede5d5"}}>
+              <button onClick={()=>setViewMode("split")} title="Split view" style={{padding:"5px 10px",borderRadius:100,fontSize:10,fontWeight:600,cursor:"pointer",border:"none",background:viewMode==="split"?"#1a1410":"transparent",color:viewMode==="split"?"#fefcf7":"#5a4a30",outline:"none",fontFamily:"'Inter',sans-serif"}}>⊟ Split</button>
+              <button onClick={()=>setViewMode("listOnly")} title="Cards only" style={{padding:"5px 10px",borderRadius:100,fontSize:10,fontWeight:600,cursor:"pointer",border:"none",background:viewMode==="listOnly"?"#1a1410":"transparent",color:viewMode==="listOnly"?"#fefcf7":"#5a4a30",outline:"none",fontFamily:"'Inter',sans-serif"}}>📋 List</button>
+              <button onClick={()=>setViewMode("mapOnly")} title="Map only" style={{padding:"5px 10px",borderRadius:100,fontSize:10,fontWeight:600,cursor:"pointer",border:"none",background:viewMode==="mapOnly"?"#1a1410":"transparent",color:viewMode==="mapOnly"?"#fefcf7":"#5a4a30",outline:"none",fontFamily:"'Inter',sans-serif"}}>🗺️ Map</button>
+            </div>
+          )}
         </div>
         <div style={{display:"flex",flexWrap:"wrap",gap:5,marginTop:10,alignItems:"center"}}>
           <span style={{fontSize:10,color:"#8a7a5a",fontWeight:600,marginRight:4,letterSpacing:"0.5px",textTransform:"uppercase"}}>Browse</span>
@@ -693,10 +949,10 @@ function Dashboard({ onBack }) {
           overflowY:"auto",
           padding:isMobile?"12px 14px":"20px 28px",
           background:"#faf6ee",
-          display:isMobile&&mobileView!=="list"?"none":"block",
+          display:(isMobile&&mobileView!=="list")||(!isMobile&&viewMode==="mapOnly")?"none":"block",
         }}>
           {filtered.length===0?<div style={{textAlign:"center",padding:"60px 20px",color:"#a09070"}}><div style={{fontSize:48}}>🌾</div><p style={{fontFamily:"'Fraunces',serif",fontSize:18,fontWeight:500,color:"#5a4a30"}}>No farms found</p></div>
-          :<div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(auto-fill,minmax(300px,1fr))",gap:isMobile?10:14}}>
+          :<div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":(viewMode==="listOnly"?"repeat(auto-fill,minmax(280px,1fr))":"repeat(auto-fill,minmax(300px,1fr))"),gap:isMobile?10:14}}>
             {filtered.map(f=>{const tc=TS[f.type]||{};const isSel=sel?.id===f.id;const dist=gd(f);return(
               <div key={f.id} onClick={()=>{hs(f);if(isMobile)setMobileView("map");}} style={{display:"flex",flexDirection:isMobile?"row":"column",width:"100%",textAlign:"left",background:isSel?"#fefcf7":"#fff",border:isSel?`1.5px solid ${tc.c}`:"1px solid #ede5d5",borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"all 0.2s",boxShadow:isSel?"0 6px 20px rgba(90,74,47,0.08)":"0 1px 2px rgba(0,0,0,0.02)",fontFamily:"'Inter',sans-serif"}}>
                 {/* Farm image */}
@@ -736,14 +992,14 @@ function Dashboard({ onBack }) {
 
         {/* MAP + DETAIL SIDEBAR */}
         <div style={{
-          width:isMobile?"100%":400,
-          minWidth:isMobile?"auto":360,
+          width:isMobile?"100%":(viewMode==="mapOnly"?"100%":400),
+          minWidth:isMobile?"auto":(viewMode==="mapOnly"?"auto":360),
           flexShrink:0,
-          display:isMobile&&mobileView!=="map"?"none":"flex",
+          display:(isMobile&&mobileView!=="map")||(!isMobile&&viewMode==="listOnly")?"none":"flex",
           flexDirection:"column",
-          borderLeft:isMobile?"none":"1px solid #ede5d5",
+          borderLeft:isMobile||viewMode==="mapOnly"?"none":"1px solid #ede5d5",
           background:"#fefcf7",
-          flex:isMobile?1:"0 0 auto",
+          flex:(isMobile||viewMode==="mapOnly")?1:"0 0 auto",
         }}>
           <div style={{height:sel?(isMobile?"50%":"42%"):(isMobile?"100%":"100%"),flexShrink:0,transition:"height 0.3s",position:"relative"}}>
             <TexasMapD3 farms={FARMS} selected={sel} onSelect={hs} filteredIds={fids}/>
@@ -796,9 +1052,13 @@ function Dashboard({ onBack }) {
 // ════════════════════════════════════
 export default function App() {
   const [page, setPage] = useState("landing");
+  const [initialFarm, setInitialFarm] = useState(null);
 
   if (page === "landing") {
-    return <Landing onEnter={() => setPage("dashboard")}/>;
+    return <Landing 
+      onEnter={() => setPage("dashboard")} 
+      onSelectFarm={(f) => { setInitialFarm(f); setPage("dashboard"); }}
+    />;
   }
-  return <Dashboard onBack={() => setPage("landing")}/>;
+  return <Dashboard onBack={() => setPage("landing")} initialFarm={initialFarm}/>;
 }
